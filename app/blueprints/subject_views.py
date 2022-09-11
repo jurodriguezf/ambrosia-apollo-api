@@ -10,7 +10,7 @@ from app.schemas.subject_schema import SubjectSchema
 subject_bp = Blueprint("subject", __name__)
 
 
-@subject_bp.route("/<subjects:subject_id>", methods=["GET"])
+@subject_bp.route("/<string:subject_id>", methods=["GET"])
 @error_decorator
 def get_subject(subject_id: str):
     """"Get subject by id"""
@@ -18,7 +18,7 @@ def get_subject(subject_id: str):
     return jsonify(res), HTTPStatus.OK
 
 
-@subject_bp.route("/", method=["POST"])
+@subject_bp.route("/", methods=["POST"])
 @error_decorator
 def post_subject():
     """"Create new subject"""

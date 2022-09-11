@@ -8,7 +8,7 @@ from app.utils.constants import PING_RESPONSE
 subject_bp = Blueprint("curricula", __name__)
 
 
-@subject_bp.route("/<curricula:curricula_id>", methods=["GET"])
+@subject_bp.route("/<string:curricula_id>", methods=["GET"])
 @error_decorator
 def get_subject():
     """"Ping endpoint, for knowing if the app is up"""
