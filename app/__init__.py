@@ -1,35 +1,86 @@
-from flask import Flask
-# from flask_cors import CORS
-# from flask_wtf.csrf import CSRFProtect
-
-from app.blueprints.ping_views import ping_bp
-from app.blueprints.subject_views import subject_bp
-from app.modules import *
-
-ACTIVE_ENDPOINTS = [
-    {"url": "/ping", "bp": ping_bp},
-    {"url": "/subjects", "bp": subject_bp},
-]
+from flask import Flask, request, jsonify
+from firebase_admin import credentials, firestore, initialize_app
 
 
 def create_app():
-    #template_path = os.path.dirname(__file__) + "/../firebase-key.json"
-    # cred = credentials.Certificate(template_path)
-    # default_app = initialize_app(cred)
-    # db = firestore.client()
-    # todo_ref = db.collection('todos')
-
+    # Initialize Flask app
     app = Flask(__name__)
 
-    # CORS(app)
+    # Initialize Firestore DB
+    cred = credentials.Certificate('firebase-key.json')
+    default_app = initialize_app(cred)
+    db = firestore.client()
+    todo_ref = db.collection('todos')
 
-    # app.config["WTF_CSRF_CHECK_DEFAULT"] = False
+    subjects_ref = db.collection('subjects')
+    curricula_ref = db.collection('curricula')
 
-    # csrf = CSRFProtect()
+    @app.route('/subjects', methods=['POST'])
+    def create_subject():
+        try:
+            id = request.json['code']
+            subjects_ref.document(id).set(request.json)
+            return jsonify({"success": True}), 200
+        except Exception as e:
+            return f"An Error Occurred: {e}"
 
-    app.url_map.strict_slashes = False
+    @app.route('/list', methods=['GET'])
+    def read():
+        """
+            read() : Fetches documents from Firestore collection as JSON.
+            todo : Return document that matches query ID.
+            all_todos : Return all documents.
+        """
+        try:
+            # Check if ID was passed to URL query
+            todo_id = request.args.get('id')
+            if todo_id:
+                todo = todo_ref.document(todo_id).get()
+                return jsonify(todo.to_dict()), 200
+            else:
+                all_todos = [doc.to_dict() for doc in todo_ref.stream()]
+                return jsonify(all_todos), 200
+        except Exception as e:
+            return f"An Error Occurred: {e}"
 
-    for endpoint in ACTIVE_ENDPOINTS:
-        app.register_blueprint(endpoint.get("bp"), url_prefix=endpoint.get("url"))
+    @app.route('/subjects/<subject_id>', methods=['GET'])
+    def get_subject_by_id(subject_id):
+        """
+            read() : Fetches documents from Firestore collection as JSON.
+            todo : Return document that matches query ID.
+            all_todos : Return all documents.
+        """
+        try:
+            todo = subjects_ref.document(subject_id).get()
+            return jsonify(todo.to_dict()), 200
+        except Exception as e:
+            return f"An Error Occurred: {e}"
+
+    @app.route('/update', methods=['POST', 'PUT'])
+    def update():
+        """
+            update() : Update document in Firestore collection with request body.
+            Ensure you pass a custom ID as part of json body in post request,
+            e.g. json={'id': '1', 'title': 'Write a blog post today'}
+        """
+        try:
+            id = request.json['id']
+            todo_ref.document(id).update(request.json)
+            return jsonify({"success": True}), 200
+        except Exception as e:
+            return f"An Error Occurred: {e}"
+
+    @app.route('/delete', methods=['GET', 'DELETE'])
+    def delete():
+        """
+            delete() : Delete a document from Firestore collection.
+        """
+        try:
+            # Check for ID in URL query
+            todo_id = request.args.get('id')
+            todo_ref.document(todo_id).delete()
+            return jsonify({"success": True}), 200
+        except Exception as e:
+            return f"An Error Occurred: {e}"
 
     return app
