@@ -1,5 +1,11 @@
+import os
+
+from http import HTTPStatus
+
 from flask import Flask, request, jsonify
 from firebase_admin import credentials, firestore, initialize_app
+
+from app.exceptions.exceptions import SubjectAlreadyExistsException, SubjectNotFoundException
 
 
 def create_app():
@@ -7,7 +13,8 @@ def create_app():
     app = Flask(__name__)
 
     # Initialize Firestore DB
-    cred = credentials.Certificate('firebase-key.json')
+    template_path = os.path.dirname(__file__) + "/../firebase-key.json"
+    cred = credentials.Certificate(template_path)
     default_app = initialize_app(cred)
     db = firestore.client()
     todo_ref = db.collection('todos')
@@ -18,9 +25,21 @@ def create_app():
     @app.route('/subjects', methods=['POST'])
     def create_subject():
         try:
-            id = request.json['code']
-            subjects_ref.document(id).set(request.json)
-            return jsonify({"success": True}), 200
+            if subjects_ref.document(request.json['code']).get():
+                raise SubjectAlreadyExistsException(request.json['code'])
+            subject_code = request.json['code']
+            subjects_ref.document(subject_code).set(request.json)
+            return jsonify({"success": True}), HTTPStatus.CREATED
+        except Exception as e:
+            return f"An Error Occurred: {e}"
+
+    @app.route('/subjects/<subject_id>', methods=['GET'])
+    def get_subject_by_id(subject_id):
+        try:
+            subject = subjects_ref.document(subject_id).get()
+            if subject is None:
+                raise SubjectNotFoundException(subject_id)
+            return jsonify(subject.to_dict()), 200
         except Exception as e:
             return f"An Error Occurred: {e}"
 
@@ -40,19 +59,6 @@ def create_app():
             else:
                 all_todos = [doc.to_dict() for doc in todo_ref.stream()]
                 return jsonify(all_todos), 200
-        except Exception as e:
-            return f"An Error Occurred: {e}"
-
-    @app.route('/subjects/<subject_id>', methods=['GET'])
-    def get_subject_by_id(subject_id):
-        """
-            read() : Fetches documents from Firestore collection as JSON.
-            todo : Return document that matches query ID.
-            all_todos : Return all documents.
-        """
-        try:
-            todo = subjects_ref.document(subject_id).get()
-            return jsonify(todo.to_dict()), 200
         except Exception as e:
             return f"An Error Occurred: {e}"
 

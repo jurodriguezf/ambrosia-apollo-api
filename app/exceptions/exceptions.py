@@ -1,40 +1,26 @@
-# Parent exception if a resource doesn't exist
-class ResourceNotFoundException(Exception):
-    def __init__(self, resource_id, resource=None):
-        self.resource = resource
-        self.resource_id = resource_id
-
-
-class SubjectNotFoundException(ResourceNotFoundException):
-    def __init__(self, subject: str = None):
+class SubjectNotFoundException(Exception):
+    def __init__(self, subject: str = None, message="Subject not found"):
         self.subject = subject
-        self.resource = "SubjectEntity"
-        self.resource_id = "subject"
+        self.message = message
+        super().__init__(self.message)
 
 
-class CurriculaNotFoundException(ResourceNotFoundException):
-    def __init__(self, curricula: str = None):
-        self.curricula = curricula
-        self.resource = "CurriculaEntity"
-        self.resource_id = "curricula"
-
-
-# Parent exception if a resource already exists
-class ResourceAlreadyExistsException(Exception):
-    def __init__(self, resource_id, resource=None):
-        self.resource = resource
-        self.resource_id = resource_id
-
-
-class SubjectAlreadyExistsException(ResourceAlreadyExistsException):
-    def __init__(self, subject: str = None):
+class SubjectAlreadyExistsException(Exception):
+    def __init__(self, subject: str = None, message="Subject already exists"):
         self.subject = subject
-        self.resource = "SubjectEntity"
-        self.resource_id = "subject"
+        self.message = message
+        super().__init__(self.message)
 
 
-class CurriculaAlreadyExistsException(ResourceAlreadyExistsException):
-    def __init__(self, curricula: str = None):
+class CurriculaNotFoundException(Exception):
+    def __init__(self, curricula: str = None, message="Curricula not found"):
         self.curricula = curricula
-        self.resource = "CurriculaEntity"
-        self.resource_id = "curricula"
+        self.message = message
+        super().__init__(self.message)
+
+
+class CurriculaAlreadyExistsException(Exception):
+    def __init__(self, curricula: str = None, message="Curricula already exists"):
+        self.curricula = curricula
+        self.message = message
+        super().__init__(self.message)
