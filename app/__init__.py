@@ -25,7 +25,8 @@ def create_app():
     @app.route('/subjects', methods=['POST'])
     def create_subject():
         try:
-            if subjects_ref.document(request.json['code']).get():
+            subject = subjects_ref.document(request.json['code']).get()
+            if subject is None:
                 raise SubjectAlreadyExistsException(request.json['code'])
             subject_code = request.json['code']
             subjects_ref.document(subject_code).set(request.json)
@@ -39,7 +40,19 @@ def create_app():
             subject = subjects_ref.document(subject_id).get()
             if subject is None:
                 raise SubjectNotFoundException(subject_id)
-            return jsonify(subject.to_dict()), 200
+            return jsonify(subject.to_dict()), HTTPStatus.OK
+        except Exception as e:
+            return f"An Error Occurred: {e}"
+
+    @app.route('/subjects/<subject_id>', methods=['PUT'])
+    def update_subject_by_id(subject_id):
+        try:
+            subject = subjects_ref.document(subject_id).get()
+            if subject is None:
+                raise SubjectNotFoundException(subject_id)
+            subject_code = request.json['code']
+            subjects_ref.document(subject_code).update(request.json)
+            return jsonify({"success": True}), HTTPStatus.OK
         except Exception as e:
             return f"An Error Occurred: {e}"
 
