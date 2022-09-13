@@ -5,7 +5,7 @@ from http import HTTPStatus
 from flask import Flask, request, jsonify
 from firebase_admin import credentials, firestore, initialize_app
 
-from app.exceptions.exceptions import SubjectAlreadyExistsException, SubjectNotFoundException
+from app.exceptions.exceptions import *
 
 
 def create_app():
@@ -24,9 +24,10 @@ def create_app():
 
     @app.route('/subjects', methods=['POST'])
     def create_subject():
+        """"Create subject"""
         try:
             subject = subjects_ref.document(request.json['code']).get()
-            if subject is None:
+            if subject.exists:
                 raise SubjectAlreadyExistsException(request.json['code'])
             subject_code = request.json['code']
             subjects_ref.document(subject_code).set(request.json)
@@ -36,9 +37,10 @@ def create_app():
 
     @app.route('/subjects/<subject_id>', methods=['GET'])
     def get_subject_by_id(subject_id):
+        """"Get subject by subject id"""
         try:
             subject = subjects_ref.document(subject_id).get()
-            if subject is None:
+            if not subject.exists:
                 raise SubjectNotFoundException(subject_id)
             return jsonify(subject.to_dict()), HTTPStatus.OK
         except Exception as e:
@@ -46,9 +48,10 @@ def create_app():
 
     @app.route('/subjects/<subject_id>', methods=['PUT'])
     def update_subject_by_id(subject_id):
+        """"Update subject by subject id"""
         try:
             subject = subjects_ref.document(subject_id).get()
-            if subject is None:
+            if not subject.exists:
                 raise SubjectNotFoundException(subject_id)
             subject_code = request.json['code']
             subjects_ref.document(subject_code).update(request.json)
@@ -56,49 +59,40 @@ def create_app():
         except Exception as e:
             return f"An Error Occurred: {e}"
 
-    @app.route('/list', methods=['GET'])
-    def read():
-        """
-            read() : Fetches documents from Firestore collection as JSON.
-            todo : Return document that matches query ID.
-            all_todos : Return all documents.
-        """
+    @app.route('/subjects/curricula', methods=['POST'])
+    def create_curricula():
+        """"Create curricula"""
         try:
-            # Check if ID was passed to URL query
-            todo_id = request.args.get('id')
-            if todo_id:
-                todo = todo_ref.document(todo_id).get()
-                return jsonify(todo.to_dict()), 200
-            else:
-                all_todos = [doc.to_dict() for doc in todo_ref.stream()]
-                return jsonify(all_todos), 200
+            curricula = curricula_ref.document(request.json['curricula_info']['code']).get()
+            if curricula.exists:
+                raise CurriculaAlreadyExistsException(request.json['curricula_info']['code'])
+            curricula_code = request.json['curricula_info']['code']
+            curricula_ref.document(curricula_code).set(request.json)
+            return jsonify({"success": True}), HTTPStatus.CREATED
         except Exception as e:
             return f"An Error Occurred: {e}"
 
-    @app.route('/update', methods=['POST', 'PUT'])
-    def update():
-        """
-            update() : Update document in Firestore collection with request body.
-            Ensure you pass a custom ID as part of json body in post request,
-            e.g. json={'id': '1', 'title': 'Write a blog post today'}
-        """
+    @app.route('/subjects/curricula/<curricula_id>', methods=['GET'])
+    def get_curricula_by_id(curricula_id):
+        """"Get curricula by curricula id"""
         try:
-            id = request.json['id']
-            todo_ref.document(id).update(request.json)
-            return jsonify({"success": True}), 200
+            curricula = curricula_ref.document(curricula_id).get()
+            if not curricula.exists:
+                raise CurriculaNotFoundException(curricula_id)
+            return jsonify(curricula.to_dict()), HTTPStatus.OK
         except Exception as e:
             return f"An Error Occurred: {e}"
 
-    @app.route('/delete', methods=['GET', 'DELETE'])
-    def delete():
-        """
-            delete() : Delete a document from Firestore collection.
-        """
+    @app.route('/subjects/curricula/<curricula_id>', methods=['PUT'])
+    def update_curricula_by_id(curricula_id):
+        """"Update subject by subject id"""
         try:
-            # Check for ID in URL query
-            todo_id = request.args.get('id')
-            todo_ref.document(todo_id).delete()
-            return jsonify({"success": True}), 200
+            curricula = curricula_ref.document(curricula_id).get()
+            if not curricula.exists:
+                raise CurriculaNotFoundException(curricula_id)
+            curricula_code = request.json['curricula_info']['code']
+            curricula_ref.document(curricula_code).update(request.json)
+            return jsonify({"success": True}), HTTPStatus.OK
         except Exception as e:
             return f"An Error Occurred: {e}"
 
