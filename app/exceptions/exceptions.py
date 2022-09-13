@@ -1,26 +1,34 @@
-class SubjectNotFoundException(Exception):
-    def __init__(self, subject: str = None, message="Subject not found"):
-        self.subject = subject
-        self.message = message
-        super().__init__(self.message)
+class ResourceNotFoundException(Exception):
+    def __init__(self, resource_id, resource=None):
+        self.resource = resource
+        self.resource_id = resource_id
 
 
-class SubjectAlreadyExistsException(Exception):
-    def __init__(self, subject: str = None, message="Subject already exists"):
-        self.subject = subject
-        self.message = message
-        super().__init__(self.message)
+class SubjectNotFoundException(ResourceNotFoundException):
+    def __init__(self, subject: str = None):
+        self.resource = "Subject"
+        self.resource_id = subject
 
 
-class CurriculaNotFoundException(Exception):
-    def __init__(self, curricula: str = None, message="Curricula not found"):
-        self.curricula = curricula
-        self.message = message
-        super().__init__(self.message)
+class CurriculaNotFoundException(ResourceNotFoundException):
+    def __init__(self, curricula: str = None):
+        self.resource = "Curricula"
+        self.resource_id = curricula
 
 
-class CurriculaAlreadyExistsException(Exception):
-    def __init__(self, curricula: str = None, message="Curricula already exists"):
-        self.curricula = curricula
-        self.message = message
-        super().__init__(self.message)
+class ResourceAlreadyExistsException(Exception):
+    def __init__(self, resource_id, resource=None):
+        self.resource = resource
+        self.resource_id = resource_id
+
+
+class SubjectAlreadyExistsException(ResourceAlreadyExistsException):
+    def __init__(self, subject: str = None):
+        self.resource = "Subject"
+        self.resource_id = subject
+
+
+class CurriculaAlreadyExistsException(ResourceAlreadyExistsException):
+    def __init__(self, curricula: str = None):
+        self.resource = "Curricula"
+        self.resource_id = curricula
