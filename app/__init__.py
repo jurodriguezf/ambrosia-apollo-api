@@ -34,6 +34,56 @@ def create_app():
         subjects_ref.document(subject_code).set(request.json)
         return jsonify({"success": True}), HTTPStatus.CREATED
 
+    @app.route('/subjects', methods=['GET'])
+    @error_decorator
+    def get_subject_by_query_param():
+        """"Get subject by query params"""
+        args = request.args
+        code = args.get('code', default="", type=str)
+        component = args.get('component', default="", type=str)
+        name = args.get('name', default="", type=str)
+
+        # !TODO: Buscar una forma para no usar tantos condicionales
+        if component != "" and name != "" and code != "":
+            # Validate all fields
+            query = subjects_ref.where(u'code', '==', code).where(u'component', u'==', component).where(u'name', u'==',
+                                                                                                        name).stream()
+            subject_list = {subject.id: subject.to_dict() for subject in query}
+            return jsonify(list(subject_list.values())), HTTPStatus.OK
+        elif component == "" and name == "" and code == "":
+            # No params/empty params??
+            raise SubjectNotFoundException(code)
+        elif code != "" and component != "" and name == "":
+            # Validate code and component
+            query = subjects_ref.where(u'code', '==', code).where(u'component', u'==', component).stream()
+            subject_list = {subject.id: subject.to_dict() for subject in query}
+            return jsonify(list(subject_list.values())), HTTPStatus.OK
+        elif component != "" and name != "" and code == "":
+            # Validate component and name
+            query = subjects_ref.where(u'component', u'==', component).where(u'name', u'==', name).stream()
+            subject_list = {subject.id: subject.to_dict() for subject in query}
+            return jsonify(list(subject_list.values())), HTTPStatus.OK
+        elif code != "" and name != "" and component == "":
+            # Validate code and name
+            query = subjects_ref.where(u'code', u'==', code).where(u'name', u'==', name).stream()
+            subject_list = {subject.id: subject.to_dict() for subject in query}
+            return jsonify(list(subject_list.values())), HTTPStatus.OK
+        elif code != "" and component == "" and name == "":
+            # Validate only code
+            query = subjects_ref.where(u'code', u'==', code).stream()
+            subject_list = {subject.id: subject.to_dict() for subject in query}
+            return jsonify(list(subject_list.values())), HTTPStatus.OK
+        elif component != "" and code == "" and name == "":
+            # Validate only component
+            query = subjects_ref.where(u'component', u'==', component).stream()
+            subject_list = {subject.id: subject.to_dict() for subject in query}
+            return jsonify(list(subject_list.values())), HTTPStatus.OK
+        elif name != "" and code == "" and component == "":
+            # Validate only name
+            query = subjects_ref.where(u'name', u'==', name).stream()
+            subject_list = {subject.id: subject.to_dict() for subject in query}
+            return jsonify(list(subject_list.values())), HTTPStatus.OK
+
     @app.route('/subjects/<subject_id>', methods=['GET'])
     @error_decorator
     def get_subject_by_id(subject_id):
@@ -42,6 +92,13 @@ def create_app():
         if not subject.exists:
             raise SubjectNotFoundException(subject_id)
         return jsonify(subject.to_dict()), HTTPStatus.OK
+
+    @app.route('/subjects/get_all', methods=['GET'])
+    @error_decorator
+    def get_all_subjects():
+        """"Get all subjects"""
+        all_subjects = [subject.to_dict() for subject in subjects_ref.stream()]
+        return jsonify(all_subjects), HTTPStatus.OK
 
     @app.route('/subjects/<subject_id>', methods=['PUT'])
     @error_decorator
