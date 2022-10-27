@@ -21,6 +21,7 @@ def create_app():
 
     subjects_ref = db.collection('subjects')
     curricula_ref = db.collection('curricula')
+    academic_record_ref = db.collection('academic_record')
 
     @app.route('/subjects', methods=['POST'])
     @error_decorator
@@ -82,6 +83,37 @@ def create_app():
             raise CurriculaNotFoundException(curricula_id)
         curricula_code = request.json['curricula_info']['code']
         curricula_ref.document(curricula_code).update(request.json)
+        return jsonify({"success": True}), HTTPStatus.OK
+
+    @app.route('/academic_record', methods=['POST'])
+    @error_decorator
+    def create_academic_record():
+        """"Create academic record"""
+        academic_record = academic_record_ref.document(request.json['academic_history_code']).get()
+        if academic_record.exists:
+            raise AcademicRecordAlreadyExistsException(request.json['academic_history_code'])
+        academic_record_code = request.json['academic_history_code']
+        academic_record_ref.document(academic_record_code).set(request.json)
+        return jsonify({"success": True}), HTTPStatus.CREATED
+
+    @app.route('/academic_record/<academic_record_id>', methods=['GET'])
+    @error_decorator
+    def get_academic_record_by_id(academic_record_id):
+        """"Get academic record by academic record id"""
+        academic_record = academic_record_ref.document(academic_record_id).get()
+        if not academic_record.exists:
+            raise AcademicRecordNotFoundException(academic_record_id)
+        return jsonify(academic_record.to_dict()), HTTPStatus.OK
+
+    @app.route('/academic_record/<academic_record_id>', methods=['PUT'])
+    @error_decorator
+    def update_academic_record_by_id(academic_record_id):
+        """"Update academic record by academic record id"""
+        academic_record = academic_record_ref.document(academic_record_id).get()
+        if not academic_record.exists:
+            raise CurriculaNotFoundException(academic_record_id)
+        academic_record_code = request.json['academic_history_code']
+        academic_record_ref.document(academic_record_code).update(request.json)
         return jsonify({"success": True}), HTTPStatus.OK
 
     return app

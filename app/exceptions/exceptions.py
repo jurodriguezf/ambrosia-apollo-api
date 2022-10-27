@@ -16,6 +16,12 @@ class CurriculaNotFoundException(ResourceNotFoundException):
         self.resource_id = curricula
 
 
+class AcademicRecordNotFoundException(ResourceNotFoundException):
+    def __init__(self, academic_record: str = None):
+        self.resource = "Academic Record"
+        self.resource_id = academic_record
+
+
 class ResourceAlreadyExistsException(Exception):
     def __init__(self, resource_id, resource=None):
         self.resource = resource
@@ -32,3 +38,9 @@ class CurriculaAlreadyExistsException(ResourceAlreadyExistsException):
     def __init__(self, curricula: str = None):
         self.resource = "Curricula"
         self.resource_id = curricula
+
+
+class AcademicRecordAlreadyExistsException(ResourceAlreadyExistsException):
+    def __init__(self, academic_record: str = None):
+        self.resource = "Academic Record"
+        self.resource_id = academic_record
