@@ -8,6 +8,8 @@ COPY requirements.txt requirements.txt
 RUN apk add build-base
 RUN pip3 install -r requirements.txt
 
+EXPOSE 4000
+
 COPY . .
 
 CMD ["python3", "-m" , "flask", "run", "--host=0.0.0.0"]
