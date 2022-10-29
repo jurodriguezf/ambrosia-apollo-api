@@ -8,7 +8,7 @@ COPY requirements.txt requirements.txt
 RUN apk add build-base
 RUN pip3 install -r requirements.txt
 
-EXPOSE 4000
+EXPOSE 5000
 
 COPY . .
 
