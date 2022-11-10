@@ -22,6 +22,7 @@ def create_app():
     subjects_ref = db.collection('subjects')
     curricula_ref = db.collection('curricula')
     academic_record_ref = db.collection('academic_record')
+    finance_ref = db.collection('finance')
 
     @app.route('/subjects', methods=['POST'])
     @error_decorator
@@ -146,10 +147,10 @@ def create_app():
     @error_decorator
     def create_academic_record():
         """"Create academic record"""
-        academic_record = academic_record_ref.document(request.json['academic_history_code']).get()
+        academic_record = academic_record_ref.document(request.json['academicHistoryCode']).get()
         if academic_record.exists:
-            raise AcademicRecordAlreadyExistsException(request.json['academic_history_code'])
-        academic_record_code = request.json['academic_history_code']
+            raise AcademicRecordAlreadyExistsException(request.json['academicHistoryCode'])
+        academic_record_code = request.json['academicHistoryCode']
         academic_record_ref.document(academic_record_code).set(request.json)
         return jsonify({"success": True}), HTTPStatus.CREATED
 
@@ -169,8 +170,39 @@ def create_app():
         academic_record = academic_record_ref.document(academic_record_id).get()
         if not academic_record.exists:
             raise CurriculaNotFoundException(academic_record_id)
-        academic_record_code = request.json['academic_history_code']
+        academic_record_code = request.json['academicHistoryCode']
         academic_record_ref.document(academic_record_code).update(request.json)
+        return jsonify({"success": True}), HTTPStatus.OK
+
+    @app.route('/finance', methods=['POST'])
+    @error_decorator
+    def create_receipt():
+        """"Create receipt"""
+        receipt = finance_ref.document(request.json['student']['studentCode']).get()
+        if receipt.exists:
+            raise ReceiptAlreadyExistsException(request.json['student']['studentCode'])
+        receipt_code = request.json['student']['studentCode']
+        finance_ref.document(receipt_code).set(request.json)
+        return jsonify({"success": True}), HTTPStatus.CREATED
+
+    @app.route('/finance/<student_receipt_id>', methods=['GET'])
+    @error_decorator
+    def get_receipt_by_id(student_receipt_id):
+        """"Get receipt by receipt id"""
+        receipt = finance_ref.document(student_receipt_id).get()
+        if not receipt.exists:
+            raise ReceiptNotFoundException(student_receipt_id)
+        return jsonify(receipt.to_dict()), HTTPStatus.OK
+
+    @app.route('/finance/<student_receipt_id>', methods=['PUT'])
+    @error_decorator
+    def update_receipt_by_id(student_receipt_id):
+        """"Update receipt by receipt id"""
+        receipt = finance_ref.document(student_receipt_id).get()
+        if not receipt.exists:
+            raise ReceiptNotFoundException(student_receipt_id)
+        receipt_code = request.json['student']['studentCode']
+        finance_ref.document(receipt_code).update(request.json)
         return jsonify({"success": True}), HTTPStatus.OK
 
     return app

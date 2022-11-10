@@ -22,6 +22,12 @@ class AcademicRecordNotFoundException(ResourceNotFoundException):
         self.resource_id = academic_record
 
 
+class ReceiptNotFoundException(ResourceNotFoundException):
+    def __init__(self, receipt: str = None):
+        self.resource = "Receipt"
+        self.resource_id = receipt
+
+
 class ResourceAlreadyExistsException(Exception):
     def __init__(self, resource_id, resource=None):
         self.resource = resource
@@ -44,3 +50,9 @@ class AcademicRecordAlreadyExistsException(ResourceAlreadyExistsException):
     def __init__(self, academic_record: str = None):
         self.resource = "Academic Record"
         self.resource_id = academic_record
+
+
+class ReceiptAlreadyExistsException(ResourceAlreadyExistsException):
+    def __init__(self, receipt: str = None):
+        self.resource = "Receipt"
+        self.resource_id = receipt
